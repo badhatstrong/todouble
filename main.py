@@ -1,31 +1,39 @@
 from tkinter import *
 from tkinter import messagebox
+import sqlite3
+
+con = sqlite3.connect('todo.db')
+cur = con.cursor()
+var = cur.execute("SELECT * FROM notes")
+data = cur.fetchall()
 
 
 def new_task():
     task = my_entry.get()
     if task != "":
+        conn = sqlite3.connect('todo.db')
+        curr = conn.cursor()
+        params = (None, task)
+        curr.execute("INSERT INTO notes (id,note) VALUES (?,?)", params)
+        conn.commit()
         lb.insert(END, task)
         my_entry.delete(0, "end")
-        task_list.write(task)
-        task_list.write('\n')
     else:
-        messagebox.showwarning("warning", "Please enter some task.")
+        messagebox.showwarning("Warning", "Enter something!")
 
 
 def delete_task():
-    with open("todo.txt", "r") as t:
-        lines = t.readlines()
-    with open("todo.txt", "w") as t:
-        for line in lines:
-            if item != line:
-                t.write(line)
+    task = my_entry.get()
+    conn = sqlite3.connect('todo.db')
+    curr = conn.cursor()
+    curr.execute("DELETE FROM notes WHERE note = %s", id, item)
+    conn.commit()
     lb.delete(ANCHOR)
 
 
 ws = Tk()
 ws.geometry('500x700+500+200')
-ws.title('Simple To-Do List')
+ws.title('ToDouble')
 ws.config(bg='#223441')
 ws.resizable(width=False, height=False)
 
@@ -45,7 +53,12 @@ lb = Listbox(
 )
 lb.pack(side=LEFT, fill=BOTH)
 
-task_list = open('./todo.txt', 'r+')
+
+def database():
+    return data
+
+
+task_list = database()
 
 for item in task_list:
     lb.insert(END, item)
@@ -68,7 +81,7 @@ button_frame.pack(pady=20)
 
 addTask_btn = Button(
     button_frame,
-    text='Add Task',
+    text='Add',
     font='times 10',
     bg='#c5f776',
     padx=20,
@@ -79,7 +92,7 @@ addTask_btn.pack(fill=BOTH, expand=True, side=LEFT)
 
 delTask_btn = Button(
     button_frame,
-    text='Delete Task',
+    text='Delete',
     font='times 10',
     bg='#ff8b61',
     padx=20,
@@ -88,4 +101,5 @@ delTask_btn = Button(
 )
 delTask_btn.pack(fill=BOTH, expand=True, side=LEFT)
 
+con.close()
 ws.mainloop()
